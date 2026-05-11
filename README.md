@@ -4,13 +4,13 @@ A student-focused portfolio builder that creates ATS-friendly, one-page portfoli
 
 ## Features
 
-### Guided Input (Form Wizard)
+### Guided Input 
 - **Step 1 - Basics**: Name, degree, university, email, GitHub, LinkedIn
 - **Step 2 - Courses**: Select from common CS courses or add custom ones
 - **Step 3 - Skills**: Languages, tools, and frameworks with grouped buttons
 - **Step 4 - Projects**: Add 1-3 projects with problem/solution descriptions
 
-### Auto-Written Bullets (Killer Feature)
+### Auto-Written Bullets 
 The app automatically rewrites casual project descriptions into professional, recruiter-ready bullets.
 
 **Example:**
@@ -63,14 +63,4 @@ src/
 ├── App.jsx               # Main wizard container
 └── index.css             # Tailwind imports
 ```
-
-## Why This Project Stands Out
-
-- **UX thinking** - Progressive disclosure, no overwhelming forms
-- **Real user pain awareness** - Solves actual student portfolio struggles
-- **Text transformation logic** - Pattern matching and text enhancement
-- **Product sense** - Opinionated design choices that reduce decision fatigue
-
----
-
 *Built for students, by students*

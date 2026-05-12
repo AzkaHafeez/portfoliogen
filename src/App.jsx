@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import StepBasics from './components/StepBasics';
-import StepCourses from './components/StepCourses';
 import StepTools from './components/StepTools';
 import StepProjects from './components/StepProjects';
 import StepExtras from './components/StepExtras';
@@ -9,7 +8,6 @@ import { downloadHTML, downloadPDF, copyToClipboard, saveToLocalStorage, loadFro
 
 const STEPS = [
   { id: 'basics', label: 'Basics', component: StepBasics },
-  { id: 'courses', label: 'Courses', component: StepCourses },
   { id: 'tools', label: 'Skills', component: StepTools },
   { id: 'projects', label: 'Projects', component: StepProjects },
   { id: 'extras', label: 'Extras', component: StepExtras },
@@ -18,22 +16,64 @@ const STEPS = [
 const INITIAL_DATA = {
   name: '',
   summary: '',
-  degree: '',
-  university: '',
-  gradYear: '',
-  cgpa: '',
   email: '',
   phone: '',
   github: '',
   linkedin: '',
-  courses: [],
+  education: [
+    { degree: '', institution: '', location: '', dateRange: '', grade: '', courses: [] }
+  ],
   languages: [],
   tools: [],
   frameworks: [],
-  projects: [{ name: '', problem: '', solution: '', techStack: [] }],
+  projects: [{ name: '', role: '', bullets: ['', '', ''], impact: '', techStack: [] }],
   achievements: [],
-  certifications: []
+  certifications: [],
+  spokenLanguages: [],
+  additionalInfo: []
 };
+
+// Migrate old flat education fields to new education array format
+function migrateData(saved) {
+  if (saved && !saved.education && (saved.degree || saved.university)) {
+    saved.education = [{
+      degree: saved.degree || '',
+      institution: saved.university || '',
+      location: '',
+      dateRange: saved.gradYear || '',
+      grade: saved.cgpa || '',
+      courses: saved.courses || []
+    }];
+    delete saved.degree;
+    delete saved.university;
+    delete saved.gradYear;
+    delete saved.cgpa;
+    delete saved.courses;
+  }
+  // Migrate old projects without role/impact/bullets
+  if (saved && saved.projects) {
+    saved.projects = saved.projects.map(p => {
+      // Convert old problem/solution into bullets
+      if (!p.bullets) {
+        const bullets = [];
+        if (p.solution) bullets.push(p.solution);
+        if (p.problem) bullets.push(p.problem);
+        if (bullets.length === 0) bullets.push('', '', '');
+        return {
+          name: p.name || '',
+          role: p.role || '',
+          bullets,
+          impact: p.impact || '',
+          techStack: p.techStack || []
+        };
+      }
+      return { ...p, role: p.role || '', impact: p.impact || '' };
+    });
+  }
+  if (saved && !saved.spokenLanguages) saved.spokenLanguages = [];
+  if (saved && !saved.additionalInfo) saved.additionalInfo = [];
+  return saved;
+}
 
 function App() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,8 +83,9 @@ function App() {
 
   // Load saved data on mount
   useEffect(() => {
-    const saved = loadFromLocalStorage();
+    let saved = loadFromLocalStorage();
     if (saved) {
+      saved = migrateData(saved);
       setFormData({ ...INITIAL_DATA, ...saved });
     }
   }, []);

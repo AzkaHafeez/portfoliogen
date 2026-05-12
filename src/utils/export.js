@@ -1,8 +1,19 @@
-import { generateBullets } from './bulletWriter';
+import { cleanBullet } from './bulletWriter';
 
-// Generate full-page HTML portfolio
+// Generate full-page HTML portfolio - Two Column Layout
 export function generateHTML(data) {
-  const { name, email, github, linkedin, phone, degree, university, gradYear, cgpa, courses, languages, tools, frameworks, projects, summary, achievements, certifications } = data;
+  const { 
+    name, email, github, linkedin, phone, 
+    education, languages, tools, frameworks, projects, summary, 
+    achievements, certifications, spokenLanguages, additionalInfo 
+  } = data;
+
+  const hasSkills = (languages?.length || 0) + (frameworks?.length || 0) + (tools?.length || 0) > 0;
+  const hasProjects = projects && projects.some(p => p.name || (p.bullets && p.bullets.some(b => b.trim())));
+  const hasEducation = education && education.some(e => e.degree || e.institution);
+  const hasCertifications = certifications && certifications.length > 0;
+  const hasSpokenLanguages = spokenLanguages && spokenLanguages.length > 0;
+  const hasAdditionalInfo = additionalInfo && additionalInfo.length > 0;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -13,219 +24,183 @@ export function generateHTML(data) {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 800px; 
+      font-family: Calibri, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 850px; 
       margin: 0 auto; 
-      padding: 32px 40px;
+      padding: 28px 36px;
       color: #1a1a1a;
-      line-height: 1.4;
-      font-size: 11pt;
+      line-height: 1.35;
+      font-size: 10pt;
     }
-    header { 
-      text-align: center; 
-      border-bottom: 2px solid #000; 
-      padding-bottom: 12px; 
-      margin-bottom: 16px; 
+    .container {
+      display: flex;
+      gap: 24px;
+    }
+    .left-col {
+      flex: 1 1 62%;
+      min-width: 0;
+    }
+    .right-col {
+      flex: 0 0 35%;
+      min-width: 0;
     }
     h1 { 
       font-size: 24pt; 
       font-weight: 700;
-      letter-spacing: 1px; 
-      text-transform: uppercase; 
-      margin-bottom: 6px; 
-    }
-    .contact { 
-      font-size: 10pt; 
-      color: #333;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .contact span { 
-      display: inline-flex;
-      align-items: center;
-    }
-    .contact span:not(:last-child)::after {
-      content: '|';
-      margin-left: 8px;
-      color: #999;
-    }
-    section { margin-bottom: 14px; }
-    h2 { 
-      font-size: 11pt; 
-      text-transform: uppercase; 
-      letter-spacing: 1px; 
-      border-bottom: 1px solid #333; 
-      padding-bottom: 3px; 
-      margin-bottom: 8px;
-      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.1;
+      margin-bottom: 6px;
     }
     .summary {
-      font-size: 10pt;
-      color: #333;
-      line-height: 1.5;
-      text-align: justify;
+      font-size: 9.5pt;
+      color: #444;
+      line-height: 1.45;
+      margin-bottom: 14px;
     }
-    .edu-row { 
-      display: flex; 
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 4px;
-    }
-    .edu-degree { font-weight: 600; font-size: 11pt; }
-    .edu-university { color: #333; font-size: 10pt; }
-    .edu-year { color: #555; font-size: 10pt; }
-    .edu-cgpa { font-size: 10pt; color: #333; margin-top: 2px; }
-    .coursework { 
-      font-size: 10pt; 
-      color: #444; 
-      margin-top: 6px;
-      line-height: 1.4;
-    }
-    .coursework strong { font-weight: 600; }
-    .skills-grid {
-      display: grid;
-      gap: 4px;
-    }
-    .skills-row {
-      display: flex;
-      font-size: 10pt;
-    }
-    .skills-label {
-      font-weight: 600;
-      min-width: 100px;
-    }
-    .skills-list {
-      color: #333;
-    }
-    .project { 
-      margin-bottom: 12px; 
-      page-break-inside: avoid;
-    }
-    .project-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-    .project-name { 
-      font-weight: 600; 
+    h2 {
+      color: #4472C4;
       font-size: 11pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #4472C4;
+      padding-bottom: 2px;
+      margin-bottom: 8px;
     }
-    .project-tech { 
-      font-size: 9pt; 
-      color: #555;
-      font-style: italic;
-    }
-    .project ul { 
-      margin: 0;
-      padding-left: 16px; 
-    }
-    .project li { 
-      font-size: 10pt; 
-      color: #333; 
-      margin-bottom: 2px;
-      line-height: 1.4;
-    }
-    .achievements ul, .certifications ul {
-      margin: 0;
-      padding-left: 16px;
-    }
-    .achievements li, .certifications li {
-      font-size: 10pt;
-      color: #333;
-      margin-bottom: 2px;
-    }
+    section { margin-bottom: 14px; }
+    .project { margin-bottom: 10px; page-break-inside: avoid; }
+    .project-name { font-weight: 700; font-size: 10.5pt; margin-bottom: 1px; }
+    .project-role { font-size: 9.5pt; color: #555; margin-bottom: 2px; }
+    .project-tech { font-size: 9.5pt; color: #444; margin-bottom: 2px; }
+    .project-tech strong { font-weight: 600; }
+    .project ul { margin: 0; padding-left: 16px; }
+    .project li { font-size: 9.5pt; color: #333; margin-bottom: 1px; line-height: 1.35; }
+    .project-impact { font-size: 9.5pt; color: #444; margin-top: 2px; }
+    .project-impact strong { font-weight: 600; }
+    .edu-entry { margin-bottom: 8px; }
+    .edu-degree { font-weight: 700; font-size: 10.5pt; margin-bottom: 1px; }
+    .edu-institution { font-size: 9.5pt; color: #444; }
+    .edu-date { font-size: 9.5pt; color: #555; }
+    .edu-entry ul { margin: 0; padding-left: 16px; }
+    .edu-entry li { font-size: 9.5pt; color: #333; line-height: 1.35; }
+    .contact-info { display: flex; flex-direction: column; gap: 2px; font-size: 9.5pt; color: #333; }
+    .skills-group { margin-bottom: 6px; }
+    .skills-group-title { font-weight: 700; font-size: 9.5pt; margin-bottom: 2px; }
+    .skills-group ul { margin: 0; padding-left: 16px; }
+    .skills-group li { font-size: 9.5pt; color: #333; margin-bottom: 1px; }
+    .right-col ul { margin: 0; padding-left: 16px; }
+    .right-col li { font-size: 9.5pt; color: #333; margin-bottom: 1px; line-height: 1.35; }
     @media print { 
-      body { padding: 20px; }
+      body { padding: 20px 30px; max-width: none; }
       section { page-break-inside: avoid; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>${name || 'Your Name'}</h1>
-    <div class="contact">
-      ${email ? `<span>${email}</span>` : ''}
-      ${phone ? `<span>${phone}</span>` : ''}
-      ${github ? `<span>github.com/${github}</span>` : ''}
-      ${linkedin ? `<span>linkedin.com/in/${linkedin}</span>` : ''}
+  <div class="container">
+    <!-- LEFT COLUMN -->
+    <div class="left-col">
+      <h1>${name || 'Your Name'}</h1>
+      ${summary ? `<p class="summary">${summary}</p>` : ''}
+
+      ${hasProjects ? `
+      <section>
+        <h2>Projects</h2>
+        ${projects.filter(p => p.name || (p.bullets && p.bullets.some(b => b.trim()))).map(project => {
+          const bullets = (project.bullets || []).filter(b => b.trim()).map(b => cleanBullet(b));
+          return `
+        <div class="project">
+          <p class="project-name">${project.name || 'Project'}</p>
+          ${project.role ? `<p class="project-role">${project.role}</p>` : ''}
+          ${project.techStack && project.techStack.length > 0 ? `<p class="project-tech"><strong>Tech Stack:</strong> ${project.techStack.join(', ')}</p>` : ''}
+          ${bullets.length > 0 ? `<ul>
+            ${bullets.map(b => `<li>${b}</li>`).join('\n            ')}
+          </ul>` : ''}
+          ${project.impact ? `<p class="project-impact"><strong>Impact:</strong> ${project.impact}</p>` : ''}
+        </div>`;
+        }).join('')}
+      </section>
+      ` : ''}
+
+      ${hasEducation ? `
+      <section>
+        <h2>Educational Background</h2>
+        ${education.filter(e => e.degree || e.institution).map(edu => `
+        <div class="edu-entry">
+          <p class="edu-degree">${edu.degree}</p>
+          <p class="edu-institution">${edu.institution}${edu.location ? `, ${edu.location}` : ''}</p>
+          ${edu.dateRange ? `<p class="edu-date">${edu.dateRange}</p>` : ''}
+          ${(edu.grade || (edu.courses && edu.courses.length > 0)) ? `
+          <ul>
+            ${edu.grade ? `<li>${edu.grade}</li>` : ''}
+            ${edu.courses && edu.courses.length > 0 ? `<li>${edu.courses.join(', ')}</li>` : ''}
+          </ul>` : ''}
+        </div>`).join('')}
+      </section>
+      ` : ''}
     </div>
-  </header>
 
-  ${summary ? `
-  <section>
-    <h2>Summary</h2>
-    <p class="summary">${summary}</p>
-  </section>
-  ` : ''}
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+      <section>
+        <h2>Contact</h2>
+        <div class="contact-info">
+          ${phone ? `<p>${phone}</p>` : ''}
+          ${email ? `<p>${email}</p>` : ''}
+          ${linkedin ? `<p>www.linkedin.com/in/${linkedin}</p>` : ''}
+          ${github ? `<p>https://github.com/${github}</p>` : ''}
+        </div>
+      </section>
 
-  ${(degree || university) ? `
-  <section>
-    <h2>Education</h2>
-    <div class="edu-row">
-      <div>
-        <p class="edu-degree">${degree || ''}</p>
-        <p class="edu-university">${university || ''}</p>
-        ${cgpa ? `<p class="edu-cgpa">CGPA: ${cgpa}</p>` : ''}
-      </div>
-      ${gradYear ? `<p class="edu-year">${gradYear}</p>` : ''}
+      ${hasSkills ? `
+      <section>
+        <h2>Skills</h2>
+        ${languages && languages.length > 0 ? `
+        <div class="skills-group">
+          <p class="skills-group-title">Technical Skills</p>
+          <ul>${languages.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>` : ''}
+        ${frameworks && frameworks.length > 0 ? `
+        <div class="skills-group">
+          <p class="skills-group-title">Tools & Technologies</p>
+          <ul>${frameworks.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>` : ''}
+        ${tools && tools.length > 0 ? `
+        <div class="skills-group">
+          <p class="skills-group-title">Developer Tools</p>
+          <ul>${tools.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>` : ''}
+      </section>
+      ` : ''}
+
+      ${hasSpokenLanguages ? `
+      <section>
+        <h2>Languages</h2>
+        <ul>
+          ${spokenLanguages.map(l => `<li>${l.name} (${l.proficiency})</li>`).join('\n          ')}
+        </ul>
+      </section>
+      ` : ''}
+
+      ${hasCertifications ? `
+      <section>
+        <h2>Certification</h2>
+        <ul>
+          ${certifications.map(c => `<li>${c}</li>`).join('\n          ')}
+        </ul>
+      </section>
+      ` : ''}
+
+      ${hasAdditionalInfo ? `
+      <section>
+        <h2>Additional Information</h2>
+        <ul>
+          ${additionalInfo.map(i => `<li>${i}</li>`).join('\n          ')}
+        </ul>
+      </section>
+      ` : ''}
     </div>
-    ${courses && courses.length > 0 ? `<p class="coursework"><strong>Relevant Coursework:</strong> ${courses.join(', ')}</p>` : ''}
-  </section>
-  ` : ''}
-
-  ${((languages && languages.length > 0) || (frameworks && frameworks.length > 0) || (tools && tools.length > 0)) ? `
-  <section>
-    <h2>Technical Skills</h2>
-    <div class="skills-grid">
-      ${languages && languages.length > 0 ? `<div class="skills-row"><span class="skills-label">Languages:</span><span class="skills-list">${languages.join(', ')}</span></div>` : ''}
-      ${frameworks && frameworks.length > 0 ? `<div class="skills-row"><span class="skills-label">Frameworks:</span><span class="skills-list">${frameworks.join(', ')}</span></div>` : ''}
-      ${tools && tools.length > 0 ? `<div class="skills-row"><span class="skills-label">Tools:</span><span class="skills-list">${tools.join(', ')}</span></div>` : ''}
-    </div>
-  </section>
-  ` : ''}
-
-  ${projects && projects.some(p => p.name || p.solution) ? `
-  <section>
-    <h2>Projects</h2>
-    ${projects.filter(p => p.name || p.solution).map(project => {
-      const bullets = generateBullets(project.name, project.problem, project.solution, project.techStack || []);
-      return `
-    <div class="project">
-      <div class="project-header">
-        <span class="project-name">${project.name || 'Project'}</span>
-        ${project.techStack && project.techStack.length > 0 ? `<span class="project-tech">${project.techStack.join(', ')}</span>` : ''}
-      </div>
-      <ul>
-        ${bullets.length > 0 
-          ? bullets.map(b => `<li>${b}</li>`).join('\n        ')
-          : project.solution ? `<li>${project.solution}</li>` : ''
-        }
-      </ul>
-    </div>`;
-    }).join('')}
-  </section>
-  ` : ''}
-
-  ${achievements && achievements.length > 0 ? `
-  <section>
-    <h2>Achievements</h2>
-    <ul class="achievements">
-      ${achievements.map(a => `<li>${a}</li>`).join('\n      ')}
-    </ul>
-  </section>
-  ` : ''}
-
-  ${certifications && certifications.length > 0 ? `
-  <section>
-    <h2>Certifications</h2>
-    <ul class="certifications">
-      ${certifications.map(c => `<li>${c}</li>`).join('\n      ')}
-    </ul>
-  </section>
-  ` : ''}
+  </div>
 </body>
 </html>`;
 
@@ -234,7 +209,11 @@ export function generateHTML(data) {
 
 // Generate ATS-friendly plain text
 export function generatePlainText(data) {
-  const { name, email, github, linkedin, phone, degree, university, gradYear, cgpa, courses, languages, tools, frameworks, projects, summary, achievements, certifications } = data;
+  const { 
+    name, email, github, linkedin, phone, 
+    education, languages, tools, frameworks, projects, summary, 
+    achievements, certifications, spokenLanguages, additionalInfo 
+  } = data;
 
   let text = '';
 
@@ -244,8 +223,8 @@ export function generatePlainText(data) {
   const contacts = [];
   if (email) contacts.push(email);
   if (phone) contacts.push(phone);
-  if (github) contacts.push(`github.com/${github}`);
-  if (linkedin) contacts.push(`linkedin.com/in/${linkedin}`);
+  if (github) contacts.push(`https://github.com/${github}`);
+  if (linkedin) contacts.push(`www.linkedin.com/in/${linkedin}`);
   if (contacts.length > 0) text += contacts.join(' | ') + '\n';
   text += '\n';
 
@@ -256,51 +235,70 @@ export function generatePlainText(data) {
     text += summary + '\n\n';
   }
 
-  // Education
-  if (degree || university) {
-    text += 'EDUCATION\n';
+  // Projects
+  if (projects && projects.some(p => p.name || (p.bullets && p.bullets.some(b => b.trim())))) {
+    text += 'PROJECTS\n';
     text += '-'.repeat(60) + '\n';
-    if (degree) text += degree + '\n';
-    if (university) text += university;
-    if (gradYear) text += ` | ${gradYear}`;
+    
+    projects.filter(p => p.name || (p.bullets && p.bullets.some(b => b.trim()))).forEach(project => {
+      text += `\n${project.name || 'Project'}`;
+      if (project.role) text += ` — ${project.role}`;
+      text += '\n';
+      if (project.techStack && project.techStack.length > 0) {
+        text += `Tech Stack: ${project.techStack.join(', ')}\n`;
+      }
+      
+      const bullets = (project.bullets || []).filter(b => b.trim()).map(b => cleanBullet(b));
+      bullets.forEach(b => text += `• ${b}\n`);
+      if (project.impact) text += `Impact: ${project.impact}\n`;
+    });
     text += '\n';
-    if (cgpa) text += `CGPA: ${cgpa}\n`;
-    if (courses && courses.length > 0) {
-      text += `Relevant Coursework: ${courses.join(', ')}\n`;
-    }
-    text += '\n';
+  }
+
+  // Education
+  if (education && education.some(e => e.degree || e.institution)) {
+    text += 'EDUCATIONAL BACKGROUND\n';
+    text += '-'.repeat(60) + '\n';
+    education.filter(e => e.degree || e.institution).forEach(edu => {
+      if (edu.degree) text += edu.degree + '\n';
+      if (edu.institution) {
+        text += edu.institution;
+        if (edu.location) text += `, ${edu.location}`;
+        text += '\n';
+      }
+      if (edu.dateRange) text += edu.dateRange + '\n';
+      if (edu.grade) text += `• ${edu.grade}\n`;
+      if (edu.courses && edu.courses.length > 0) {
+        text += `• ${edu.courses.join(', ')}\n`;
+      }
+      text += '\n';
+    });
   }
 
   // Skills
   const hasSkills = (languages?.length || 0) + (frameworks?.length || 0) + (tools?.length || 0) > 0;
   if (hasSkills) {
-    text += 'TECHNICAL SKILLS\n';
+    text += 'SKILLS\n';
     text += '-'.repeat(60) + '\n';
-    if (languages && languages.length > 0) text += `Languages: ${languages.join(', ')}\n`;
-    if (frameworks && frameworks.length > 0) text += `Frameworks: ${frameworks.join(', ')}\n`;
-    if (tools && tools.length > 0) text += `Tools: ${tools.join(', ')}\n`;
+    if (languages && languages.length > 0) text += `Technical Skills: ${languages.join(', ')}\n`;
+    if (frameworks && frameworks.length > 0) text += `Tools & Technologies: ${frameworks.join(', ')}\n`;
+    if (tools && tools.length > 0) text += `Developer Tools: ${tools.join(', ')}\n`;
     text += '\n';
   }
 
-  // Projects
-  if (projects && projects.some(p => p.name || p.solution)) {
-    text += 'PROJECTS\n';
+  // Spoken Languages
+  if (spokenLanguages && spokenLanguages.length > 0) {
+    text += 'LANGUAGES\n';
     text += '-'.repeat(60) + '\n';
-    
-    projects.filter(p => p.name || p.solution).forEach(project => {
-      text += `\n${project.name || 'Project'}`;
-      if (project.techStack && project.techStack.length > 0) {
-        text += ` [${project.techStack.join(', ')}]`;
-      }
-      text += '\n';
-      
-      const bullets = generateBullets(project.name, project.problem, project.solution, project.techStack || []);
-      if (bullets.length > 0) {
-        bullets.forEach(b => text += `• ${b}\n`);
-      } else if (project.solution) {
-        text += `• ${project.solution}\n`;
-      }
-    });
+    spokenLanguages.forEach(l => text += `• ${l.name} (${l.proficiency})\n`);
+    text += '\n';
+  }
+
+  // Certifications
+  if (certifications && certifications.length > 0) {
+    text += 'CERTIFICATIONS\n';
+    text += '-'.repeat(60) + '\n';
+    certifications.forEach(c => text += `• ${c}\n`);
     text += '\n';
   }
 
@@ -312,11 +310,11 @@ export function generatePlainText(data) {
     text += '\n';
   }
 
-  // Certifications
-  if (certifications && certifications.length > 0) {
-    text += 'CERTIFICATIONS\n';
+  // Additional Information
+  if (additionalInfo && additionalInfo.length > 0) {
+    text += 'ADDITIONAL INFORMATION\n';
     text += '-'.repeat(60) + '\n';
-    certifications.forEach(c => text += `• ${c}\n`);
+    additionalInfo.forEach(i => text += `• ${i}\n`);
   }
 
   return text;

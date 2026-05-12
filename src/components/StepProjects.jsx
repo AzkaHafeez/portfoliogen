@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { generateBullets } from '../utils/bulletWriter';
+import { cleanBullet, startsWithActionVerb } from '../utils/bulletWriter';
 
 const EMPTY_PROJECT = {
   name: '',
-  problem: '',
-  solution: '',
+  role: '',
+  bullets: ['', '', ''],
+  impact: '',
   techStack: []
 };
 
 const TECH_SUGGESTIONS = [
   'React', 'Node.js', 'Python', 'JavaScript', 'MongoDB', 'MySQL', 
   'Firebase', 'Express', 'Django', 'Flask', 'HTML/CSS', 'Tailwind',
-  'Docker', 'AWS', 'Git', 'REST API', 'GraphQL', 'Redis'
+  'Docker', 'AWS', 'Git', 'REST API', 'GraphQL', 'Redis',
+  'FastAPI', 'PostgreSQL', 'Java', 'JavaFX', 'OOP', 'XGBoost',
+  'LightGBM', 'SHAP/LIME', 'Uvicorn', 'Gavicorn', 'C++', 'TypeScript'
 ];
 
 export default function StepProjects({ data, onUpdate }) {
@@ -27,7 +30,7 @@ export default function StepProjects({ data, onUpdate }) {
   };
 
   const addProject = () => {
-    if (projects.length < 3) {
+    if (projects.length < 4) {
       const updated = [...projects, { ...EMPTY_PROJECT }];
       onUpdate({ ...data, projects: updated });
       setActiveProject(updated.length - 1);
@@ -62,20 +65,38 @@ export default function StepProjects({ data, onUpdate }) {
     }
   };
 
+  const updateBullet = (bulletIndex, value) => {
+    const currentBullets = [...(projects[activeProject].bullets || ['', '', ''])];
+    currentBullets[bulletIndex] = value;
+    updateProject(activeProject, 'bullets', currentBullets);
+  };
+
+  const addBullet = () => {
+    const currentBullets = [...(projects[activeProject].bullets || [])];
+    if (currentBullets.length < 5) {
+      updateProject(activeProject, 'bullets', [...currentBullets, '']);
+    }
+  };
+
+  const removeBullet = (bulletIndex) => {
+    const currentBullets = [...(projects[activeProject].bullets || [])];
+    if (currentBullets.length > 1) {
+      updateProject(activeProject, 'bullets', currentBullets.filter((_, i) => i !== bulletIndex));
+    }
+  };
+
   const currentProject = projects[activeProject] || EMPTY_PROJECT;
-  const previewBullets = currentProject.solution 
-    ? generateBullets(currentProject.name, currentProject.problem, currentProject.solution, currentProject.techStack || [])
-    : [];
+  const currentBullets = currentProject.bullets || ['', '', ''];
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Projects</h2>
-        <p className="text-gray-600">Add 1-3 projects. Quality over quantity – recruiters scan fast</p>
+        <p className="text-gray-600">Add 1-4 projects. Write specific bullets about what YOU did</p>
       </div>
 
       {/* Project Tabs */}
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-2 items-center flex-wrap">
         {projects.map((project, index) => (
           <div key={index} className="relative">
             <button
@@ -103,7 +124,7 @@ export default function StepProjects({ data, onUpdate }) {
             )}
           </div>
         ))}
-        {projects.length < 3 && (
+        {projects.length < 4 && (
           <button
             type="button"
             onClick={addProject}
@@ -131,32 +152,74 @@ export default function StepProjects({ data, onUpdate }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Problem (1 line) *
+            Role / Subtitle
           </label>
           <input
             type="text"
-            value={currentProject.problem}
-            onChange={(e) => updateProject(activeProject, 'problem', e.target.value)}
-            placeholder="e.g., Students struggle to track assignments"
+            value={currentProject.role || ''}
+            onChange={(e) => updateProject(activeProject, 'role', e.target.value)}
+            placeholder="e.g., Full-Stack Developer | Personal Project"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
-            maxLength={100}
           />
-          <p className="text-xs text-gray-500 mt-1">{currentProject.problem.length}/100 characters</p>
+        </div>
+
+        {/* Bullet Points */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Bullet Points *
+          </label>
+          <p className="text-xs text-gray-500 mb-3">Write what you actually did. Start with action verbs (Built, Implemented, Worked on, Utilized...)</p>
+          
+          <div className="space-y-2">
+            {currentBullets.map((bullet, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <span className="mt-3 text-gray-400 text-sm">•</span>
+                <textarea
+                  value={bullet}
+                  onChange={(e) => updateBullet(i, e.target.value)}
+                  placeholder={
+                    i === 0 ? "e.g., Built a full-stack web application with user authentication and real-time data sync" :
+                    i === 1 ? "e.g., Implemented RESTful API endpoints with input validation and error handling" :
+                    "e.g., Designed responsive UI components using React and integrated third-party APIs"
+                  }
+                  rows={2}
+                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition bg-white resize-none"
+                />
+                {currentBullets.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeBullet(i)}
+                    className="mt-2 text-gray-400 hover:text-red-500 transition text-lg"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {currentBullets.length < 5 && (
+            <button
+              type="button"
+              onClick={addBullet}
+              className="mt-2 text-sm text-gray-500 hover:text-black transition"
+            >
+              + Add another bullet
+            </button>
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Solution (1 line) *
+            Impact
           </label>
           <input
             type="text"
-            value={currentProject.solution}
-            onChange={(e) => updateProject(activeProject, 'solution', e.target.value)}
-            placeholder="e.g., Built a todo app with reminders and calendar sync"
+            value={currentProject.impact || ''}
+            onChange={(e) => updateProject(activeProject, 'impact', e.target.value)}
+            placeholder="e.g., Deployed to production; serving 500+ active users"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition bg-white"
-            maxLength={120}
           />
-          <p className="text-xs text-gray-500 mt-1">{currentProject.solution.length}/120 characters</p>
         </div>
 
         <div>
@@ -220,19 +283,27 @@ export default function StepProjects({ data, onUpdate }) {
         </div>
       </div>
 
-      {/* Live Bullet Preview */}
-      {previewBullets.length > 0 && (
+      {/* Live Preview of bullets */}
+      {currentBullets.some(b => b.trim()) && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-          <p className="text-sm font-medium text-green-800 mb-2">✨ Auto-generated bullets:</p>
+          <p className="text-sm font-medium text-green-800 mb-2">Preview:</p>
           <ul className="space-y-1">
-            {previewBullets.map((bullet, i) => (
-              <li key={i} className="text-sm text-green-700 flex items-start gap-2">
-                <span className="mt-1">•</span>
-                <span>{bullet}</span>
-              </li>
-            ))}
+            {currentBullets.filter(b => b.trim()).map((bullet, i) => {
+              const cleaned = cleanBullet(bullet);
+              const hasVerb = startsWithActionVerb(bullet);
+              return (
+                <li key={i} className="text-sm text-green-700 flex items-start gap-2">
+                  <span className="mt-1">•</span>
+                  <span>
+                    {cleaned}
+                    {!hasVerb && cleaned && (
+                      <span className="ml-2 text-xs text-amber-600">(tip: start with an action verb)</span>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
-          <p className="text-xs text-green-600 mt-2">These will appear on your portfolio</p>
         </div>
       )}
     </div>

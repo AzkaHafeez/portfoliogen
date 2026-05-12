@@ -1,7 +1,11 @@
-import { generateBullets } from '../utils/bulletWriter';
+import { cleanBullet } from '../utils/bulletWriter';
 
 export default function Preview({ data }) {
-  const { name, email, phone, github, linkedin, degree, university, gradYear, cgpa, courses, languages, tools, frameworks, projects, summary, achievements, certifications } = data;
+  const { 
+    name, email, phone, github, linkedin, 
+    education, languages, tools, frameworks, projects, summary, 
+    achievements, certifications, spokenLanguages, additionalInfo 
+  } = data;
 
   const allSkills = [
     ...(languages || []),
@@ -9,11 +13,14 @@ export default function Preview({ data }) {
     ...(tools || [])
   ];
 
-  const hasBasics = name || email || degree;
+  const hasBasics = name || email;
   const hasSkills = allSkills.length > 0;
-  const hasProjects = projects && projects.some(p => p.name || p.solution);
+  const hasProjects = projects && projects.some(p => p.name || (p.bullets && p.bullets.some(b => b.trim())));
+  const hasEducation = education && education.some(e => e.degree || e.institution);
   const hasAchievements = achievements && achievements.length > 0;
   const hasCertifications = certifications && certifications.length > 0;
+  const hasSpokenLanguages = spokenLanguages && spokenLanguages.length > 0;
+  const hasAdditionalInfo = additionalInfo && additionalInfo.length > 0;
 
   if (!hasBasics && !hasSkills && !hasProjects) {
     return (
@@ -27,168 +34,215 @@ export default function Preview({ data }) {
     );
   }
 
+  const sectionHeadingStyle = {
+    color: '#4472C4',
+    fontSize: '11px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    borderBottom: '2px solid #4472C4',
+    paddingBottom: '2px',
+    marginBottom: '6px',
+  };
+
   return (
-    <div className="p-6 font-sans text-[11px] leading-tight print-section" id="portfolio-preview">
-      {/* Header */}
-      <header className="text-center border-b-2 border-black pb-3 mb-4">
-        <h1 className="text-xl font-bold tracking-wide uppercase">
-          {name || 'Your Name'}
-        </h1>
+    <div className="font-sans print-section" id="portfolio-preview" style={{ fontSize: '9.5px', lineHeight: '1.35', padding: '20px 22px', color: '#1a1a1a' }}>
+      {/* Two Column Layout */}
+      <div style={{ display: 'flex', gap: '18px' }}>
         
-        <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 mt-1.5 text-[10px] text-gray-600">
-          {email && <span>{email}</span>}
-          {phone && <><span className="text-gray-400">|</span><span>{phone}</span></>}
-          {github && <><span className="text-gray-400">|</span><span>github.com/{github}</span></>}
-          {linkedin && <><span className="text-gray-400">|</span><span>linkedin.com/in/{linkedin}</span></>}
-        </div>
-      </header>
-
-      {/* Summary */}
-      {summary && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Summary
-          </h2>
-          <p className="text-[10px] text-gray-700 leading-relaxed">{summary}</p>
-        </section>
-      )}
-
-      {/* Education */}
-      {(degree || university) && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Education
-          </h2>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="font-semibold text-[11px]">{degree || 'Degree / Major'}</p>
-              <p className="text-gray-600 text-[10px]">{university || 'University'}</p>
-              {cgpa && <p className="text-gray-600 text-[10px]">CGPA: {cgpa}</p>}
-            </div>
-            {gradYear && (
-              <p className="text-gray-600 text-[10px]">{gradYear}</p>
-            )}
-          </div>
+        {/* LEFT COLUMN */}
+        <div style={{ flex: '1 1 62%', minWidth: 0 }}>
           
-          {courses && courses.length > 0 && (
-            <p className="text-[10px] text-gray-600 mt-1.5">
-              <span className="font-semibold">Relevant Coursework: </span>
-              {courses.join(', ')}
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* Skills */}
-      {hasSkills && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Technical Skills
-          </h2>
-          <div className="space-y-0.5 text-[10px]">
-            {languages && languages.length > 0 && (
-              <p>
-                <span className="font-semibold">Languages: </span>
-                {languages.join(', ')}
-              </p>
-            )}
-            {frameworks && frameworks.length > 0 && (
-              <p>
-                <span className="font-semibold">Frameworks: </span>
-                {frameworks.join(', ')}
-              </p>
-            )}
-            {tools && tools.length > 0 && (
-              <p>
-                <span className="font-semibold">Tools: </span>
-                {tools.join(', ')}
+          {/* Name + Summary */}
+          <div style={{ marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#1a1a1a', lineHeight: '1.1', marginBottom: '6px' }}>
+              {name || 'Your Name'}
+            </h1>
+            {summary && (
+              <p style={{ fontSize: '9px', color: '#444', lineHeight: '1.4' }}>
+                {summary}
               </p>
             )}
           </div>
-        </section>
-      )}
 
-      {/* Projects */}
-      {hasProjects && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Projects
-          </h2>
-          <div className="space-y-3">
-            {projects.filter(p => p.name || p.solution).map((project, index) => {
-              const bullets = generateBullets(
-                project.name,
-                project.problem,
-                project.solution,
-                project.techStack || []
-              );
-              
-              return (
-                <div key={index}>
-                  <div className="flex justify-between items-baseline">
-                    <p className="font-semibold text-[11px]">
-                      {project.name || `Project ${index + 1}`}
-                    </p>
-                    {project.techStack && project.techStack.length > 0 && (
-                      <p className="text-[9px] text-gray-500 italic">
-                        {project.techStack.join(', ')}
+          {/* Projects */}
+          {hasProjects && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Projects</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {projects.filter(p => p.name || (p.bullets && p.bullets.some(b => b.trim()))).map((project, index) => {
+                  const bullets = (project.bullets || []).filter(b => b.trim()).map(b => cleanBullet(b));
+                  
+                  return (
+                    <div key={index}>
+                      <p style={{ fontWeight: 700, fontSize: '10px', marginBottom: '1px' }}>
+                        {project.name || `Project ${index + 1}`}
                       </p>
+                      {project.role && (
+                        <p style={{ fontSize: '9px', color: '#555', marginBottom: '2px' }}>
+                          {project.role}
+                        </p>
+                      )}
+                      {project.techStack && project.techStack.length > 0 && (
+                        <p style={{ fontSize: '9px', color: '#444', marginBottom: '2px' }}>
+                          <span style={{ fontWeight: 600 }}>Tech Stack: </span>
+                          {project.techStack.join(', ')}
+                        </p>
+                      )}
+                      {bullets.length > 0 && (
+                        <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                          {bullets.map((bullet, i) => (
+                            <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px', lineHeight: '1.35' }}>
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {project.impact && (
+                        <p style={{ fontSize: '9px', color: '#444', marginTop: '1px' }}>
+                          <span style={{ fontWeight: 600 }}>Impact: </span>
+                          {project.impact}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Educational Background */}
+          {hasEducation && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Educational Background</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {education.filter(e => e.degree || e.institution).map((edu, index) => (
+                  <div key={index}>
+                    <p style={{ fontWeight: 700, fontSize: '10px', marginBottom: '1px' }}>
+                      {edu.degree}
+                    </p>
+                    <p style={{ fontSize: '9px', color: '#444' }}>
+                      {edu.institution}{edu.location ? `, ${edu.location}` : ''}
+                    </p>
+                    {edu.dateRange && (
+                      <p style={{ fontSize: '9px', color: '#555' }}>{edu.dateRange}</p>
+                    )}
+                    {edu.grade && (
+                      <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                        <li style={{ fontSize: '9px', color: '#333' }}>{edu.grade}</li>
+                      </ul>
+                    )}
+                    {edu.courses && edu.courses.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                        <li style={{ fontSize: '9px', color: '#333', lineHeight: '1.35' }}>
+                          {edu.courses.join(', ')}
+                        </li>
+                      </ul>
                     )}
                   </div>
-                  <ul className="mt-0.5 space-y-0.5 text-[10px] text-gray-700 ml-3">
-                    {bullets.map((bullet, i) => (
-                      <li key={i} className="flex items-start gap-1.5">
-                        <span className="mt-0.5">•</span>
-                        <span>{bullet}</span>
-                      </li>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div style={{ flex: '0 0 35%', minWidth: 0 }}>
+          
+          {/* Contact */}
+          <section style={{ marginBottom: '12px' }}>
+            <h2 style={sectionHeadingStyle}>Contact</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '9px', color: '#333' }}>
+              {phone && <p>{phone}</p>}
+              {email && <p>{email}</p>}
+              {linkedin && <p>www.linkedin.com/in/{linkedin}</p>}
+              {github && <p>https://github.com/{github}</p>}
+            </div>
+          </section>
+
+          {/* Skills */}
+          {hasSkills && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Skills</h2>
+              
+              {languages && languages.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                  <p style={{ fontWeight: 700, fontSize: '9px', marginBottom: '2px' }}>Technical Skills</p>
+                  <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                    {languages.map((skill, i) => (
+                      <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px' }}>{skill}</li>
                     ))}
-                    {bullets.length === 0 && project.solution && (
-                      <li className="flex items-start gap-1.5">
-                        <span className="mt-0.5">•</span>
-                        <span>{project.solution}</span>
-                      </li>
-                    )}
                   </ul>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+              )}
 
-      {/* Achievements */}
-      {hasAchievements && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Achievements
-          </h2>
-          <ul className="space-y-0.5 text-[10px] text-gray-700 ml-3">
-            {achievements.map((achievement, i) => (
-              <li key={i} className="flex items-start gap-1.5">
-                <span className="mt-0.5">•</span>
-                <span>{achievement}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+              {(frameworks && frameworks.length > 0) && (
+                <div style={{ marginBottom: '6px' }}>
+                  <p style={{ fontWeight: 700, fontSize: '9px', marginBottom: '2px' }}>Tools & Technologies</p>
+                  <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                    {frameworks.map((fw, i) => (
+                      <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px' }}>{fw}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-      {/* Certifications */}
-      {hasCertifications && (
-        <section className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wide border-b border-gray-300 pb-0.5 mb-2">
-            Certifications
-          </h2>
-          <ul className="space-y-0.5 text-[10px] text-gray-700 ml-3">
-            {certifications.map((cert, i) => (
-              <li key={i} className="flex items-start gap-1.5">
-                <span className="mt-0.5">•</span>
-                <span>{cert}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+              {tools && tools.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                  <p style={{ fontWeight: 700, fontSize: '9px', marginBottom: '2px' }}>Developer Tools</p>
+                  <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                    {tools.map((tool, i) => (
+                      <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px' }}>{tool}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Spoken Languages */}
+          {hasSpokenLanguages && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Languages</h2>
+              <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                {spokenLanguages.map((lang, i) => (
+                  <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px' }}>
+                    {lang.name} ({lang.proficiency})
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Certifications */}
+          {hasCertifications && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Certification</h2>
+              <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                {certifications.map((cert, i) => (
+                  <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '1px', lineHeight: '1.35' }}>
+                    {cert}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Additional Information */}
+          {hasAdditionalInfo && (
+            <section style={{ marginBottom: '12px' }}>
+              <h2 style={sectionHeadingStyle}>Additional Information</h2>
+              <ul style={{ margin: 0, paddingLeft: '14px' }}>
+                {additionalInfo.map((info, i) => (
+                  <li key={i} style={{ fontSize: '9px', color: '#333', marginBottom: '2px', lineHeight: '1.35' }}>
+                    {info}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

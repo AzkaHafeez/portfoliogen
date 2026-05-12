@@ -1,38 +1,37 @@
 # Portfolio Generator
 
-A student-focused portfolio builder that creates ATS-friendly, one-page portfolios in minutes. No design paralysis. No "what should I write?" stress.
+A student-focused portfolio/CV builder that creates ATS-friendly, professional two-column portfolios in minutes. No design skills needed — just fill in the form and export.
 
 ## Features
 
-### Guided Input 
-- **Step 1 - Basics**: Name, degree, university, email, GitHub, LinkedIn
-- **Step 2 - Courses**: Select from common CS courses or add custom ones
-- **Step 3 - Skills**: Languages, tools, and frameworks with grouped buttons
-- **Step 4 - Projects**: Add 1-3 projects with problem/solution descriptions
+### Guided 4-Step Wizard
+- **Step 1 — Basics**: Name, summary, contact info, and up to 2 education entries (each with degree, institution, location, date range, grade, and relevant coursework)
+- **Step 2 — Skills**: Programming languages, tools, and frameworks with quick-select buttons and custom entries
+- **Step 3 — Projects**: Add 1–4 projects with role/subtitle, custom bullet points, impact statement, and tech stack
+- **Step 4 — Extras**: Spoken languages with proficiency levels, achievements, certifications, and additional info (clubs, orgs)
 
-### Auto-Written Bullets 
-The app automatically rewrites casual project descriptions into professional, recruiter-ready bullets.
+### Two-Column CV Layout
+Professional two-column design with blue-accented section headings:
+- **Left column**: Name, summary, projects (with role, tech stack, bullets, impact), and educational background
+- **Right column**: Contact info, skills (grouped), spoken languages, certifications, and additional information
 
-**Example:**
-- User input: *"Made a todo app using React and Firebase"*
-- Generated: 
-  - *Built a React-based task management application with real-time Firebase integration*
-  - *Implemented using React, Firebase with real-time data synchronization*
+### User-Written Bullets
+Write your own project bullet points — no auto-generated fluff. The app provides gentle formatting cleanup and tips to start with action verbs.
 
 ### Live Preview
-Real-time preview as you type. Clean, black & white, single-column layout optimized for ATS systems.
+Real-time side-by-side preview as you type. See exactly how your CV will look before exporting.
 
 ### Export Options
-- **Download HTML**: Get a standalone HTML file to host anywhere
-- **Copy Text**: ATS-safe plain text for pasting into applications
-- **Auto-save**: Data persists in localStorage
+- **Download PDF**: Opens a print-ready page — save as PDF from your browser
+- **Download HTML**: Standalone HTML file you can host anywhere
+- **Copy Text**: ATS-safe plain text for pasting into job applications
+- **Auto-save**: All data persists in localStorage automatically
 
 ## Tech Stack
 
-- **React + Vite** - Fast development and builds
-- **Tailwind CSS** - Minimal, utility-first styling
-- **Plain JS** - Bullet rewriting with pattern matching (no ML needed)
-- **localStorage** - Client-side persistence
+- **React 18 + Vite** — Fast development and hot module replacement
+- **Tailwind CSS v4** — Utility-first styling
+- **localStorage** — Client-side data persistence (no backend needed)
 
 ## Getting Started
 
@@ -52,15 +51,22 @@ npm run build
 ```
 src/
 ├── components/
-│   ├── StepBasics.jsx    # Personal info form
-│   ├── StepCourses.jsx   # Course selection
-│   ├── StepTools.jsx     # Skills/tech stack
-│   ├── StepProjects.jsx  # Project entries
-│   └── Preview.jsx       # Live portfolio preview
+│   ├── StepBasics.jsx     # Personal info + education (up to 2 entries with coursework)
+│   ├── StepTools.jsx      # Skills selection (languages, tools, frameworks)
+│   ├── StepProjects.jsx   # Project entries (1-4 with bullets, role, impact)
+│   ├── StepExtras.jsx     # Spoken languages, achievements, certs, additional info
+│   └── Preview.jsx        # Live two-column CV preview
 ├── utils/
-│   ├── bulletWriter.js   # Auto bullet generation
-│   └── export.js         # HTML/text export utilities
-├── App.jsx               # Main wizard container
-└── index.css             # Tailwind imports
+│   ├── bulletWriter.js    # Bullet formatting utilities
+│   └── export.js          # HTML/PDF/text export with two-column layout
+├── App.jsx                # Main wizard container with data model & migration
+└── index.css              # Tailwind imports
 ```
+
+## Data Model
+
+The app stores all portfolio data in a single state object with auto-save to localStorage. Old data formats (flat education fields, problem/solution project fields) are automatically migrated on load.
+
+---
+
 *Built for students, by students*
